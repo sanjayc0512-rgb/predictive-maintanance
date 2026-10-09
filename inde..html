@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PdM Control Room: Utilities Block</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{--bg:#E3E8ED;--p1:#F6F8FA;--p2:#EAEFF3;--line:#B9C4CE;--tx:#1B2631;--mu:#566879;--nor:#5F7385;--ac:#0B6FA4;--am:#B36B00;--rd:#C62828;--gn:#1F8A5B;--onc:#FFFFFF;--hd:#1B2B3A;--hdt:#E6EDF3;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0F1419;--p1:#1A222B;--p2:#222D38;--line:#2F3D4B;--tx:#D5DEE7;--mu:#8A9AAB;--nor:#8398AC;--ac:#4DB3D6;--am:#FFB000;--rd:#FF5252;--gn:#3FBF7F;--onc:#0F1419;--hd:#0A0E12;--hdt:#D5DEE7}}
+:root[data-theme="dark"]{--bg:#0F1419;--p1:#1A222B;--p2:#222D38;--line:#2F3D4B;--tx:#D5DEE7;--mu:#8A9AAB;--nor:#8398AC;--ac:#4DB3D6;--am:#FFB000;--rd:#FF5252;--gn:#3FBF7F;--onc:#0F1419;--hd:#0A0E12;--hdt:#D5DEE7}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:.94rem;line-height:1.45}
+.mono,.num{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+button{font-family:inherit;font-size:.85rem;cursor:pointer;border-radius:3px}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+header.hd{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--hd);color:var(--hdt);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 16px;border-bottom:3px solid var(--ac)}
+.hd h1{font-size:1.05rem;font-weight:600;margin:0}
+.hd .sub{font-size:.8rem;opacity:.75}
+.ann{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.tile{min-width:92px;padding:5px 10px;border:1px solid #3a4a5a;border-radius:3px;background:rgba(255,255,255,.04);text-align:center}
+.tile b{display:block;font-family:'IBM Plex Mono',monospace;font-size:1.4rem;line-height:1.1}
+.tile span{font-size:.7rem;letter-spacing:.06em;opacity:.8}
+.tile.crit.on{background:var(--rd);border-color:var(--rd);color:#fff}
+.tile.warn.on{background:var(--am);border-color:var(--am);color:#111}
+.tile.unack.on{border-color:var(--am);color:var(--am)}
+.flash{animation:fl 1s steps(2,start) infinite}
+@keyframes fl{50%{opacity:.3}}
+.abtn{background:var(--ac);color:var(--onc);border:0;padding:0 14px;font-weight:600}
+.abtn:disabled{opacity:.45;cursor:default}
+.badge{font-size:.72rem;border:1px solid var(--am);color:var(--am);padding:1px 7px;border-radius:3px;margin-left:8px}
+.wrap{padding:14px 16px 28px;max-width:1360px;margin:0 auto}
+.grid{display:grid;gap:12px}
+.g1{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)}
+.g2{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);margin-top:12px}
+.g3{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);margin-top:12px}
+.pn{background:var(--p1);border:1px solid var(--line);border-radius:4px;min-width:0}
+.pn>h2{margin:0;padding:8px 12px;font-size:.9rem;font-weight:600;background:var(--p2);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pb{padding:12px}
+.scroll{overflow-x:auto}
+svg.mimic{width:100%;display:block}
+.eq{cursor:pointer}
+.eq .sh{fill:var(--p2);stroke:var(--nor);stroke-width:2.5}
+.eq .ln{fill:var(--tx);font:600 15px 'IBM Plex Mono',monospace;text-anchor:middle}
+.eq .tg{fill:var(--tx);font:600 12px 'IBM Plex Sans',sans-serif;text-anchor:middle}
+.eq .mv{fill:var(--mu);font:500 11px 'IBM Plex Mono',monospace;text-anchor:middle}
+.eq .ring{fill:none;stroke:var(--ac);stroke-width:2;stroke-dasharray:5 4;opacity:0}
+.eq.sel .ring{opacity:1}
+.eq.st-watch .sh{stroke:var(--am);fill:color-mix(in srgb,var(--am) 18%,var(--p2))}
+.eq.st-crit .sh{stroke:var(--rd);fill:color-mix(in srgb,var(--rd) 22%,var(--p2))}
+.eq.st-watch .mv{fill:var(--am)}.eq.st-crit .mv{fill:var(--rd)}
+.pipe{fill:none;stroke:var(--line);stroke-width:8}
+.pipef{fill:none;stroke:var(--ac);stroke-width:2;stroke-dasharray:4 10;animation:fw 1s linear infinite}
+@keyframes fw{to{stroke-dashoffset:-14}}
+.vess{fill:var(--p2);stroke:var(--nor);stroke-width:2}
+.vt{fill:var(--mu);font:500 11px 'IBM Plex Sans',sans-serif;text-anchor:middle}
+.leg{display:flex;gap:16px;flex-wrap:wrap;color:var(--mu);font-size:.8rem;padding:0 12px 10px}
+.leg i{display:inline-block;width:12px;height:12px;border:2.5px solid var(--nor);border-radius:50%;vertical-align:-2px;margin-right:5px}
+.leg i.a{border-color:var(--am)}.leg i.r{border-color:var(--rd)}
+.pill{display:inline-block;font-weight:600;font-size:.75rem;padding:2px 9px;border-radius:3px;background:var(--nor);color:var(--onc)}
+.pill.watch{background:var(--am);color:#111}.pill.crit{background:var(--rd);color:#fff}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin:0}
+.kv dt{color:var(--mu)}.kv dd{margin:0}
+.big{font-size:2.6rem;font-weight:600;line-height:1}
+.cond{margin:12px 0;padding:10px 12px;background:var(--p2);border-left:4px solid var(--nor);border-radius:2px}
+.cond.watch{border-color:var(--am)}.cond.crit{border-color:var(--rd)}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.row .lab{color:var(--mu);font-size:.8rem;margin-right:2px}
+.b2{background:var(--p2);color:var(--tx);border:1px solid var(--line);padding:5px 10px}
+.b2:hover:not(:disabled){border-color:var(--ac)}
+.b1{background:var(--ac);color:var(--onc);border:0;padding:6px 12px;font-weight:600}
+.b1:disabled,.b2:disabled{opacity:.45;cursor:default}
+.tb{width:100%;border-collapse:collapse;font-size:.88rem}
+.tb th{text-align:left;font-weight:600;color:var(--mu);font-size:.78rem;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tb td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tb tr.eqr{cursor:pointer}
+.tb tr.eqr:hover td{background:var(--p2)}
+.tb tr.eqr.sel td{background:var(--p2);box-shadow:inset 3px 0 0 var(--ac)}
+.tb td.r,.tb th.r{text-align:right}
+.tabs{display:flex;gap:4px}
+.tabs button{background:transparent;color:var(--mu);border:1px solid var(--line);padding:3px 10px}
+.tabs button[aria-pressed="true"]{background:var(--ac);color:var(--onc);border-color:var(--ac)}
+svg.chart{width:100%;display:block}
+.chart text{fill:var(--mu);font:11px 'IBM Plex Mono',monospace}
+.al-crit td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
+.al-watch td:first-child{box-shadow:inset 4px 0 0 var(--am)}
+.al-info td:first-child{box-shadow:inset 4px 0 0 var(--ac)}
+.cl td{color:var(--mu)}
+.empty{color:var(--mu);padding:14px 12px}
+.foot{color:var(--mu);font-size:.8rem;margin-top:14px}
+@media (prefers-reduced-motion: reduce){.flash,.pipef{animation:none}}
+@media (max-width:980px){.g1,.g2,.g3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="hd">
+ <div><h1>Utilities Block: Predictive Maintenance Control Room<span class="badge">SIMULATION</span></h1><div class="sub"><span id="clk" class="mono"></span> &nbsp;|&nbsp; Shift A &nbsp;|&nbsp; Operator: ENG-01</div></div>
+ <div class="ann" role="status" aria-label="Alarm annunciator">
+  <div class="tile crit" id="tcrit"><b id="ncrit">0</b><span>CRITICAL</span></div>
+  <div class="tile warn" id="twarn"><b id="nwarn">0</b><span>WARNING</span></div>
+  <div class="tile unack" id="tun"><b id="nun">0</b><span>UNACKNOWLEDGED</span></div>
+  <button class="abtn" id="ackall" type="button">Acknowledge all</button>
+  <button class="abtn" id="pause" type="button" style="background:var(--p2);color:var(--hdt);border:1px solid #3a4a5a">Freeze</button>
+ </div>
+</header>
+
+<div class="wrap">
+<div class="grid g1">
+ <section class="pn" aria-label="Plant overview">
+  <h2>Plant overview <span class="mono" style="font-weight:500;color:var(--mu);font-size:.8rem">select any equipment</span></h2>
+  <div class="pb"><svg class="mimic" id="mimic" viewBox="0 0 640 320" role="group" aria-label="Process mimic diagram"></svg></div>
+  <div class="leg"><span><i></i>Normal</span><span><i class="a"></i>Warning (health below 80)</span><span><i class="r"></i>Critical (health below 60)</span><span>Flashing: unacknowledged alarm</span></div>
+ </section>
+ <section class="pn" aria-label="Selected equipment">
+  <h2><span id="dtag" class="mono">P-101</span><span class="pill" id="dpill">NORMAL</span></h2>
+  <div class="pb">
+   <div class="row" style="justify-content:space-between;align-items:flex-end">
+    <div><div id="ddesc" style="font-weight:600;font-size:1.05rem"></div><div style="color:var(--mu)" id="dloc"></div></div>
+    <div style="text-align:right"><div class="big mono" id="dh">100</div><div style="color:var(--mu);font-size:.8rem">health index</div></div>
+   </div>
+   <div class="cond" id="dcond"></div>
+   <dl class="kv">
+    <dt>Remaining life</dt><dd class="mono" id="drul"></dd>
+    <dt>Vibration</dt><dd class="mono" id="dv"></dd>
+    <dt>Temperature</dt><dd class="mono" id="dt"></dd>
+    <dt>Motor current</dt><dd class="mono" id="dc"></dd>
+    <dt>Last service</dt><dd id="dsvc"></dd>
+    <dt>Open work order</dt><dd id="dwo"></dd>
+   </dl>
+   <div class="row" style="margin-top:12px"><button class="b1" id="rwo" type="button">Raise work order</button></div>
+   <div class="row" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><span class="lab">Fault simulator (demo only):</span>
+    <button class="b2" type="button" data-fault="bearing">Bearing wear</button><button class="b2" type="button" data-fault="heat">Overheating</button><button class="b2" type="button" data-fault="load">Overload</button><button class="b2" type="button" data-fault="clear">Clear</button></div>
+  </div>
+ </section>
+</div>
+
+<div class="grid g2">
+ <section class="pn" aria-label="Equipment list"><h2>Equipment status</h2>
+  <div class="scroll"><table class="tb"><thead><tr><th>Tag</th><th>Description</th><th>State</th><th class="r">Health</th><th class="r">RUL</th><th class="r">Vib mm/s</th><th class="r">Temp &deg;C</th><th class="r">Amps</th></tr></thead><tbody id="eqb"></tbody></table></div>
+ </section>
+ <section class="pn" aria-label="Trend">
+  <h2><span>Trend: <span class="mono" id="ttag"></span> (last 2 min)</span>
+   <span class="tabs" id="tabs"><button type="button" data-s="h" aria-pressed="true">Health</button><button type="button" data-s="v" aria-pressed="false">Vib</button><button type="button" data-s="t" aria-pressed="false">Temp</button><button type="button" data-s="c" aria-pressed="false">Amps</button></span></h2>
+  <div class="pb"><svg class="chart" id="chart" viewBox="0 0 640 230" role="img" aria-label="Trend chart"></svg></div>
+ </section>
+</div>
+
+<div class="grid g3">
+ <section class="pn" aria-label="Alarm summary"><h2>Alarm summary</h2>
+  <div class="scroll" style="max-height:340px;overflow-y:auto"><table class="tb"><thead><tr><th>Time</th><th>Tag</th><th>Priority</th><th>Description</th><th>State</th><th></th></tr></thead><tbody id="alb"></tbody></table></div>
+ </section>
+ <section class="pn" aria-label="Work orders"><h2>Maintenance work orders (CMMS)</h2>
+  <div class="scroll" style="max-height:340px;overflow-y:auto"><table class="tb"><thead><tr><th>WO</th><th>Tag</th><th>Priority</th><th>Status</th><th></th></tr></thead><tbody id="wob"></tbody></table></div>
+ </section>
+</div>
+<p class="foot">All readings, asset details and dates are simulated for demonstration. In a real deployment, ESP32 sensor nodes publish vibration, temperature and current over MQTT and this screen reads them live. Health index = 100 minus weighted drift from baseline: vibration 50%, temperature 30%, current 20%. Alarm priorities follow the common acknowledge, return-to-normal, clear cycle used in process plants.</p>
+</div>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var N=120;
+var SIG={v:{lo:0,hi:10,u:' mm/s',d:1,amp:.15},t:{lo:30,hi:100,u:' \u00B0C',d:0,amp:.8},c:{lo:3,hi:14,u:' A',d:1,amp:.25}};
+var KINDS={bearing:{v:6,t:10,c:1,n:'Bearing wear'},heat:{v:1.5,t:48,c:2,n:'Overheating'},load:{v:1.5,t:18,c:7,n:'Overload'}};
+var FIX={v:'Inspect bearing and check alignment',t:'Check lubrication and cooling circuit',c:'Check load and motor winding insulation'};
+var RANK={ok:0,watch:1,crit:2},LBL={ok:'NORMAL',watch:'WARNING',crit:'CRITICAL'};
+var EQ=[
+ {id:'G-301',desc:'Diesel Generator',loc:'Power House',type:'G',x:120,y:60,svc:'21 Jul 2026',b:{v:2.4,t:62,c:9}},
+ {id:'M-102',desc:'Lift Drive Motor',loc:'Academic Block',type:'M',x:300,y:60,svc:'03 Sep 2026',b:{v:1.6,t:50,c:8}},
+ {id:'P-101',desc:'Water Supply Pump',loc:'Pump House',type:'P',x:210,y:165,svc:'12 Aug 2026',b:{v:2,t:45,c:6}},
+ {id:'AC-401',desc:'Chiller Unit',loc:'Library',type:'CH',x:345,y:165,svc:'15 Jun 2026',b:{v:1.2,t:48,c:5}},
+ {id:'F-105',desc:'Cooling Tower Fan',loc:'Roof',type:'F',x:500,y:165,svc:'02 Sep 2026',b:{v:2,t:55,c:7}},
+ {id:'C-201',desc:'Air Compressor',loc:'Workshop',type:'C',x:120,y:262,svc:'30 Aug 2026',b:{v:2.8,t:58,c:10}}];
+EQ.forEach(function(m){m.fault=null;m.cur={v:m.b.v,t:m.b.t,c:m.b.c};m.hist={v:[],t:[],c:[]};m.hs=[];m.score=100;m.status='ok';m.rul=0;m.top={m:'',a:''}});
+var sel=EQ[2],alarms=[],orders=[],aid=1,wid=1001,timer=null,frozen=false,tab='h';
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+function now(){return new Date().toLocaleTimeString([],{hour12:false})}
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+function byId(id){return EQ.filter(function(m){return m.id===id})[0]}
+function sample(m){
+  var k=m.fault?KINDS[m.fault.kind]:null;
+  if(m.fault)m.fault.level=Math.min(1,m.fault.level+m.fault.rate);
+  ['v','t','c'].forEach(function(s){var val=m.b[s]+(k?k[s]*m.fault.level:0)+(Math.random()-.5)*2*SIG[s].amp;
+    val=clamp(val,SIG[s].lo,SIG[s].hi);m.cur[s]=val;m.hist[s].push(val);if(m.hist[s].length>N)m.hist[s].shift()});
+  var av=function(s){var h=m.hist[s].slice(-3);return h.reduce(function(a,b){return a+b},0)/h.length};
+  var dv=clamp((av('v')-m.b.v)/6,0,1),dt=clamp((av('t')-m.b.t)/50,0,1),dc=clamp((av('c')-m.b.c)/6,0,1);
+  m.score=Math.round(100*(1-(0.5*dv+0.3*dt+0.2*dc)));m.hs.push(m.score);if(m.hs.length>N)m.hs.shift();
+  var raw=m.score>=80?'ok':m.score>=60?'watch':'crit';
+  if(RANK[raw]<RANK[m.status]){var thr=m.status==='crit'?60:80;if(m.score<thr+3)raw=m.status}
+  var P=[{k:dv*.5,m:'Vibration '+Math.round((av('v')-m.b.v)/m.b.v*100)+'% above baseline',a:FIX.v},{k:dt*.3,m:'Temperature '+Math.round(av('t')-m.b.t)+' \u00B0C above baseline',a:FIX.t},{k:dc*.2,m:'Motor current '+Math.round((av('c')-m.b.c)/m.b.c*100)+'% above baseline',a:FIX.c}];
+  P.sort(function(a,b){return b.k-a.k});m.top=P[0];m.rul=Math.max(1,Math.round((m.score-20)/8));
+  return raw;
+}
+function active(tag){return alarms.filter(function(a){return a.tag===tag&&(a.state==='ACT_UNACK'||a.state==='ACT_ACK')})[0]}
+function openWo(tag){return orders.filter(function(o){return o.tag===tag&&o.status==='OPEN'})[0]}
+function evt(tag,txt){alarms.unshift({id:aid++,tag:tag,pri:'info',desc:txt,time:now(),state:'INFO'});trim()}
+function trim(){if(alarms.length>30)alarms.length=30}
+function setStatus(m,raw){
+  var old=m.status;m.status=raw;if(old===raw)return;var al=active(m.id);
+  if(RANK[raw]>RANK[old]){var d=m.top.m+(raw==='crit'?'. Est. '+m.rul+(m.rul===1?' day':' days')+' to failure':'');
+    if(al){al.pri=raw;al.desc=d;al.state='ACT_UNACK';al.time=now()}else{alarms.unshift({id:aid++,tag:m.id,pri:raw,desc:d,time:now(),state:'ACT_UNACK'});trim()}}
+  else if(raw==='ok'&&al){al.state=al.state==='ACT_ACK'?'CLEARED':'RTN_UNACK';al.desc='Returned to normal'}
+  else if(al){al.pri=raw;al.desc=m.top.m}
+  renderAlarms();
+}
+/* mimic */
+var L=EQ.map(function(e){var ch=e.type==='CH',tg=e.y-(ch?42:34),vy=e.y+(ch?52:44);
+ var shape=ch?'<rect class="sh" x="'+(e.x-55)+'" y="'+(e.y-35)+'" width="110" height="70" rx="4"/><rect class="ring" x="'+(e.x-62)+'" y="'+(e.y-40)+'" width="124" height="80" rx="6"/>'
+  :'<circle class="sh" cx="'+e.x+'" cy="'+e.y+'" r="26"/><circle class="ring" cx="'+e.x+'" cy="'+e.y+'" r="33"/>';
+ return '<g class="eq" id="g-'+e.id+'" data-id="'+e.id+'" tabindex="0" role="button" aria-label="'+e.id+' '+e.desc+'">'+shape+'<text class="ln" x="'+e.x+'" y="'+(e.y+5)+'">'+e.type+'</text><text class="tg" x="'+e.x+'" y="'+tg+'">'+e.id+'</text><text class="mv" id="mv-'+e.id+'" x="'+e.x+'" y="'+vy+'"></text></g>'}).join('');
+var PIPES=['M146 60H274','M120 165H184','M236 165H290','M400 165H474','M526 165H590V215H90V200','M146 262H200'];
+$('mimic').innerHTML=PIPES.map(function(d){return '<path class="pipe" d="'+d+'"/><path class="pipef" d="'+d+'"/>'}).join('')+
+ '<rect class="vess" x="60" y="130" width="60" height="70" rx="3"/><text class="vt" x="90" y="124">T-100</text><rect class="vess" x="200" y="242" width="100" height="40" rx="14"/><text class="vt" x="250" y="236">AR-201</text><text class="vt" x="210" y="45" style="opacity:0">.</text>'+
+ '<text class="vt" x="210" y="82">415 V bus</text><text class="vt" x="560" y="205">Return line</text>'+L;
+$('mimic').addEventListener('click',function(e){var g=e.target.closest('.eq');if(g)pick(g.getAttribute('data-id'))});
+$('mimic').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){var g=e.target.closest('.eq');if(g){e.preventDefault();pick(g.getAttribute('data-id'))}}});
+/* table */
+$('eqb').innerHTML=EQ.map(function(m){return '<tr class="eqr" id="r-'+m.id+'" data-id="'+m.id+'"><td class="mono">'+m.id+'</td><td>'+m.desc+'</td><td><span class="pill" id="rs-'+m.id+'"></span></td><td class="r num" id="rh-'+m.id+'"></td><td class="r num" id="rr-'+m.id+'"></td><td class="r num" id="rv-'+m.id+'"></td><td class="r num" id="rt-'+m.id+'"></td><td class="r num" id="rc-'+m.id+'"></td></tr>'}).join('');
+$('eqb').addEventListener('click',function(e){var r=e.target.closest('.eqr');if(r)pick(r.getAttribute('data-id'))});
+function pick(id){sel=byId(id);renderAll()}
+function renderLive(){
+  EQ.forEach(function(m){var g=$('g-'+m.id),un=active(m.id)&&active(m.id).state==='ACT_UNACK';
+    g.setAttribute('class','eq st-'+m.status+(m===sel?' sel':'')+(un?' flash':''));
+    $('mv-'+m.id).textContent='H '+m.score+'  '+m.cur.v.toFixed(1)+' mm/s';
+    var p=$('rs-'+m.id);p.className='pill '+m.status;p.textContent=LBL[m.status];
+    $('rh-'+m.id).textContent=m.score;$('rr-'+m.id).textContent=m.status==='ok'?'-':m.rul+' d';
+    $('rv-'+m.id).textContent=m.cur.v.toFixed(1);$('rt-'+m.id).textContent=m.cur.t.toFixed(0);$('rc-'+m.id).textContent=m.cur.c.toFixed(1);
+    $('r-'+m.id).className='eqr'+(m===sel?' sel':'')});
+  var c=0,w=0;EQ.forEach(function(m){if(m.status==='crit')c++;if(m.status==='watch')w++});
+  var un=alarms.filter(function(a){return a.state==='ACT_UNACK'||a.state==='RTN_UNACK'}).length;
+  $('ncrit').textContent=c;$('nwarn').textContent=w;$('nun').textContent=un;
+  $('tcrit').className='tile crit'+(c?' on':'');$('twarn').className='tile warn'+(w?' on':'');$('tun').className='tile unack'+(un?' on flash':'');$('ackall').disabled=!un;
+  var m=sel;$('dtag').textContent=m.id;$('ddesc').textContent=m.desc;$('dloc').textContent=m.loc;
+  $('dpill').className='pill '+m.status;$('dpill').textContent=LBL[m.status];$('dh').textContent=m.score;
+  var cd=$('dcond');cd.className='cond '+m.status;
+  cd.innerHTML=m.status==='ok'?'<strong>Condition normal.</strong><br>All readings are close to baseline. No action needed.':'<strong>'+(m.status==='crit'?'Action required':'Developing fault')+'</strong><br>Cause: '+esc(m.top.m)+'.<br>Action: '+esc(m.top.a)+'.';
+  $('drul').textContent=m.status==='ok'?'No failure predicted':'About '+m.rul+(m.rul===1?' day':' days');
+  $('dv').textContent=m.cur.v.toFixed(1)+SIG.v.u+'  (baseline '+m.b.v+')';$('dt').textContent=m.cur.t.toFixed(0)+SIG.t.u+'  (baseline '+m.b.t+')';$('dc').textContent=m.cur.c.toFixed(1)+SIG.c.u+'  (baseline '+m.b.c+')';
+  $('dsvc').textContent=m.svc;var wo=openWo(m.id);$('dwo').textContent=wo?'WO-'+wo.id:'None';
+  $('rwo').disabled=!!wo||m.status==='ok';$('ttag').textContent=m.id;
+  drawChart();
+}
+function drawChart(){
+  var m=sel,W=640,H=230,l=44,r=10,t=10,b=24,pw=W-l-r,ph=H-t-b,data=tab==='h'?m.hs:m.hist[tab],lo=tab==='h'?0:SIG[tab].lo,hi=tab==='h'?100:SIG[tab].hi;
+  var X=function(i){return l+i*pw/(N-1)+(N-data.length)*pw/(N-1)*0},Y=function(v){return t+ph-(v-lo)/(hi-lo)*ph};
+  var s='';for(var g=0;g<=4;g++){var v=lo+(hi-lo)*g/4,y=Y(v);s+='<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width="1"/><text x="'+(l-6)+'" y="'+(y+4)+'" text-anchor="end">'+(tab==='h'||tab==='t'?Math.round(v):v.toFixed(1))+'</text>'}
+  s+='<text x="'+l+'" y="'+(H-6)+'">-120 s</text><text x="'+(l+pw/2)+'" y="'+(H-6)+'" text-anchor="middle">-60 s</text><text x="'+(W-r)+'" y="'+(H-6)+'" text-anchor="end">now</text>';
+  if(tab==='h'){s+='<line x1="'+l+'" x2="'+(W-r)+'" y1="'+Y(80)+'" y2="'+Y(80)+'" stroke="var(--am)" stroke-dasharray="6 4" stroke-width="1.5"/><text x="'+(W-r-4)+'" y="'+(Y(80)-4)+'" text-anchor="end" style="fill:var(--am)">WARNING 80</text><line x1="'+l+'" x2="'+(W-r)+'" y1="'+Y(60)+'" y2="'+Y(60)+'" stroke="var(--rd)" stroke-dasharray="6 4" stroke-width="1.5"/><text x="'+(W-r-4)+'" y="'+(Y(60)-4)+'" text-anchor="end" style="fill:var(--rd)">CRITICAL 60</text>'}
+  else{s+='<line x1="'+l+'" x2="'+(W-r)+'" y1="'+Y(m.b[tab])+'" y2="'+Y(m.b[tab])+'" stroke="var(--mu)" stroke-dasharray="4 4" stroke-width="1"/><text x="'+(W-r-4)+'" y="'+(Y(m.b[tab])-4)+'" text-anchor="end">baseline</text>'}
+  var off=N-data.length,pts=data.map(function(v,i){return (l+(i+off)*pw/(N-1)).toFixed(1)+','+Y(v).toFixed(1)}).join(' ');
+  s+='<polyline fill="none" stroke="var(--ac)" stroke-width="2.2" points="'+pts+'"/>';
+  $('chart').innerHTML=s;
+}
+$('tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;tab=b.getAttribute('data-s');
+  [].forEach.call($('tabs').children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});drawChart()});
+/* alarms and orders */
+var ST={ACT_UNACK:'ACTIVE, UNACK',ACT_ACK:'ACTIVE, ACK',RTN_UNACK:'RETURNED, UNACK',CLEARED:'CLEARED',INFO:'EVENT'},PR={crit:'P1 Critical',watch:'P2 Warning',info:'Info'};
+function renderAlarms(){
+  var b=$('alb');if(!alarms.length){b.innerHTML='<tr><td colspan="6" class="empty">No alarms. Pump P-101 starts developing a fault in about 15 seconds.</td></tr>';return}
+  b.innerHTML=alarms.map(function(a){var act='';
+    if(a.state==='ACT_UNACK'||a.state==='RTN_UNACK')act+='<button class="b1" data-ack="'+a.id+'">ACK</button> ';
+    if((a.state==='ACT_UNACK'||a.state==='ACT_ACK')&&!openWo(a.tag))act+='<button class="b2" data-wo="'+a.tag+'">Raise WO</button>';
+    return '<tr class="al-'+a.pri+(a.state==='CLEARED'?' cl':'')+'"><td class="num">'+a.time+'</td><td class="mono">'+a.tag+'</td><td>'+PR[a.pri]+'</td><td>'+esc(a.desc)+'</td><td'+(a.state==='ACT_UNACK'||a.state==='RTN_UNACK'?' class="flash"':'')+'>'+ST[a.state]+'</td><td>'+act+'</td></tr>'}).join('');
+}
+function renderOrders(){
+  var b=$('wob');if(!orders.length){b.innerHTML='<tr><td colspan="5" class="empty">No work orders. Raise one from an alarm or the equipment panel.</td></tr>';return}
+  b.innerHTML=orders.map(function(o){return '<tr><td class="num">WO-'+o.id+'</td><td class="mono">'+o.tag+'</td><td>'+o.pri+'</td><td>'+o.status+'</td><td>'+(o.status==='OPEN'?'<button class="b1" data-done="'+o.id+'">Complete</button>':'')+'</td></tr>'}).join('');
+}
+function raise(tag){var m=byId(tag);if(openWo(tag)||m.status==='ok')return;
+  orders.unshift({id:wid++,tag:tag,pri:m.status==='crit'?'P1':'P2',status:'OPEN'});var al=active(tag);if(al&&al.state==='ACT_UNACK')al.state='ACT_ACK';
+  renderAlarms();renderOrders();renderLive()}
+$('alb').addEventListener('click',function(e){var a=e.target.getAttribute('data-ack'),w=e.target.getAttribute('data-wo');
+  if(a){alarms.forEach(function(x){if(x.id==a)x.state=x.state==='ACT_UNACK'?'ACT_ACK':'CLEARED'});renderAlarms();renderLive()}
+  if(w)raise(w)});
+$('ackall').addEventListener('click',function(){alarms.forEach(function(x){if(x.state==='ACT_UNACK')x.state='ACT_ACK';else if(x.state==='RTN_UNACK')x.state='CLEARED'});renderAlarms();renderLive()});
+$('rwo').addEventListener('click',function(){raise(sel.id)});
+$('wob').addEventListener('click',function(e){var d=e.target.getAttribute('data-done');if(!d)return;
+  var o=orders.filter(function(x){return x.id==d})[0];o.status='COMPLETE';byId(o.tag).fault=null;evt(o.tag,'WO-'+o.id+' completed. Equipment restored to baseline.');renderAlarms();renderOrders();renderLive()});
+document.querySelectorAll('[data-fault]').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-fault');
+  sel.fault=k==='clear'?null:{kind:k,level:0,rate:.03};evt(sel.id,k==='clear'?'Simulator: fault cleared':'Simulator: '+KINDS[k].n+' injected');renderAlarms();renderLive()})});
+function renderAll(){renderLive()}
+function tick(){EQ.forEach(function(m){setStatus(m,sample(m))});$('clk').textContent=new Date().toLocaleString([],{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});renderLive()}
+for(var i=0;i<N;i++)EQ.forEach(function(m){sample(m)});
+EQ[2].fault={kind:'bearing',level:0,rate:.015};
+renderAlarms();renderOrders();tick();
+timer=setInterval(tick,1000);
+$('pause').addEventListener('click',function(){frozen=!frozen;if(frozen)clearInterval(timer);else timer=setInterval(tick,1000);$('pause').textContent=frozen?'Resume':'Freeze'});
+})();
+</script>
+</body>
+</html>
